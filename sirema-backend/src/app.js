@@ -1,0 +1,43 @@
+import 'dotenv/config';
+import express from 'express';
+import helmet from 'helmet';
+import cors from 'cors';
+import session from 'express-session';
+
+import { validarEnv } from './config/env.js';
+import authRoutes from './routes/auth.routes.js';
+import { errorHandler } from './middlewares/errorHandler.js';
+
+validarEnv();
+
+const app = express();
+
+app.use(helmet());
+app.use(cors({ origin: process.env.CORS_ORIGIN, credentials: true }));
+app.use(express.json());
+
+// NOTA: MemoryStore (el store por defecto) es suficiente para desarrollo
+// y para el alcance de este proyecto de curso, pero pierde todas las
+// sesiones si el servidor se reinicia y no funciona si algún día corren
+// más de un proceso de Node. Si eso llega a ser un problema, la solución
+// es agregar connect-session-knex o connect-redis como store.
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 8 * 60 * 60 * 1000, // 8 horas, equivalente a session.gc_maxlifetime en PHP
+  },
+}));
+
+app.use('/api/auth', authRoutes);
+// app.use('/api/roles', rolesRoutes);
+// app.use('/api/matricula', matriculaRoutes);
+
+app.use(errorHandler);
+
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => console.log(`API SIREMA escuchando en puerto ${PORT}`));
