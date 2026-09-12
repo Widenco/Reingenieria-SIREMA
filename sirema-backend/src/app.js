@@ -6,6 +6,7 @@ import session from 'express-session';
 
 import { validarEnv } from './config/env.js';
 import authRoutes from './routes/auth.routes.js';
+import administracionRoutes from './routes/administracion.routes.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 
 validarEnv();
@@ -34,6 +35,7 @@ app.use(session({
 }));
 
 app.use('/api/auth', authRoutes);
+app.use('/api/administracion', administracionRoutes);
 // app.use('/api/roles', rolesRoutes);
 // app.use('/api/matricula', matriculaRoutes);
 
