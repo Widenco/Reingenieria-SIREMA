@@ -7,6 +7,9 @@ import session from "express-session";
 import { validarEnv } from "./config/env.js";
 import authRoutes from "./routes/auth.routes.js";
 import enlacesRoutes from "./routes/enlaces.routes.js";
+import usuarioRoutes from "./routes/usuario.routes.js";
+import carreraCentroRoutes from "./routes/carreraCentro.routes.js";
+import funcionRoutes from "./routes/funcion.routes.js";
 import administracionRoutes from "./routes/administracion.routes.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
 
@@ -39,6 +42,9 @@ app.use(
 
 app.use("/api/auth", authRoutes);
 app.use("/api/enlaces", enlacesRoutes);
+app.use("/api/usuarios", usuarioRoutes);
+app.use("/api/carreras-centro", carreraCentroRoutes);
+app.use("/api/funciones", funcionRoutes);
 app.use("/api/administracion", administracionRoutes);
 // app.use('/api/roles', rolesRoutes);
 // app.use('/api/matricula', matriculaRoutes);

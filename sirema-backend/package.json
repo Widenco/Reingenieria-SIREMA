@@ -7,6 +7,9 @@
   "scripts": {
     "dev": "node --watch src/app.js",
     "start": "node src/app.js",
+    "migrate": "knex migrate:latest",
+    "migrate:rollback": "knex migrate:rollback",
+    "seed": "knex seed:run",
     "test": "node --experimental-vm-modules node_modules/.bin/jest"
   },
   "dependencies": {
