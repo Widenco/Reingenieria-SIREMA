@@ -10,6 +10,11 @@ import enlacesRoutes from "./routes/enlaces.routes.js";
 import usuarioRoutes from "./routes/usuario.routes.js";
 import carreraCentroRoutes from "./routes/carreraCentro.routes.js";
 import funcionRoutes from "./routes/funcion.routes.js";
+import municipioRoutes from "./routes/municipio.routes.js";
+import comunidadRoutes from "./routes/comunidad.routes.js";
+import tipoCentroRoutes from "./routes/tipoCentro.routes.js";
+import centroRoutes from "./routes/centro.routes.js";
+import etniaRoutes from "./routes/etnia.routes.js";
 import administracionRoutes from "./routes/administracion.routes.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
 
@@ -45,7 +50,12 @@ app.use("/api/enlaces", enlacesRoutes);
 app.use("/api/usuarios", usuarioRoutes);
 app.use("/api/carreras-centro", carreraCentroRoutes);
 app.use("/api/funciones", funcionRoutes);
+app.use("/api/municipios", municipioRoutes);
+app.use("/api/comunidades", comunidadRoutes);
 app.use("/api/administracion", administracionRoutes);
+app.use("/api/tipos-centro", tipoCentroRoutes);
+app.use("/api/centros", centroRoutes);
+app.use("/api/etnias", etniaRoutes);
 // app.use('/api/roles', rolesRoutes);
 // app.use('/api/matricula', matriculaRoutes);
 
