@@ -1,13 +1,17 @@
-import 'dotenv/config';
-import express from 'express';
-import helmet from 'helmet';
-import cors from 'cors';
-import session from 'express-session';
+import "dotenv/config";
+import express from "express";
+import helmet from "helmet";
+import cors from "cors";
+import session from "express-session";
 
-import { validarEnv } from './config/env.js';
-import authRoutes from './routes/auth.routes.js';
-import administracionRoutes from './routes/administracion.routes.js';
-import { errorHandler } from './middlewares/errorHandler.js';
+import { validarEnv } from "./config/env.js";
+import authRoutes from "./routes/auth.routes.js";
+import enlacesRoutes from "./routes/enlaces.routes.js";
+import usuarioRoutes from "./routes/usuario.routes.js";
+import carreraCentroRoutes from "./routes/carreraCentro.routes.js";
+import funcionRoutes from "./routes/funcion.routes.js";
+import administracionRoutes from "./routes/administracion.routes.js";
+import { errorHandler } from "./middlewares/errorHandler.js";
 
 validarEnv();
 
@@ -22,20 +26,26 @@ app.use(express.json());
 // sesiones si el servidor se reinicia y no funciona si algún día corren
 // más de un proceso de Node. Si eso llega a ser un problema, la solución
 // es agregar connect-session-knex o connect-redis como store.
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-    maxAge: 8 * 60 * 60 * 1000, // 8 horas, equivalente a session.gc_maxlifetime en PHP
-  },
-}));
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 8 * 60 * 60 * 1000, // 8 horas, equivalente a session.gc_maxlifetime en PHP
+    },
+  }),
+);
 
-app.use('/api/auth', authRoutes);
-app.use('/api/administracion', administracionRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/enlaces", enlacesRoutes);
+app.use("/api/usuarios", usuarioRoutes);
+app.use("/api/carreras-centro", carreraCentroRoutes);
+app.use("/api/funciones", funcionRoutes);
+app.use("/api/administracion", administracionRoutes);
 // app.use('/api/roles', rolesRoutes);
 // app.use('/api/matricula', matriculaRoutes);
 
