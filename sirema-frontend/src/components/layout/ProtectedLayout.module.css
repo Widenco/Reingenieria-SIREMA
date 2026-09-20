@@ -1,0 +1,3 @@
+.layout { display: flex; min-height: 100vh; background: #f7f9fc; }
+.content { min-width: 0; flex: 1; }
+@media (max-width: 720px) { .layout { display: block; } }
