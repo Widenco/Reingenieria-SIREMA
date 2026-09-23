@@ -21,6 +21,10 @@ import areaConocimientoRoutes from "./routes/areaConocimiento.routes.js";
 import carreraRoutes from "./routes/carrera.routes.js";
 import semestreRoutes from "./routes/semestre.routes.js";
 import tipoIngresoRoutes from "./routes/tipoIngreso.routes.js";
+import modalidadRoutes from "./routes/modalidad.routes.js";
+import tipoModalidadRoutes from "./routes/tipoModalidad.routes.js";
+import turnoRoutes from "./routes/turno.routes.js";
+import grupoRoutes from "./routes/grupo.routes.js";
 import administracionRoutes from "./routes/administracion.routes.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
 
@@ -68,6 +72,10 @@ app.use("/api/areas-conocimiento", areaConocimientoRoutes);
 app.use("/api/carreras", carreraRoutes);
 app.use("/api/semestres", semestreRoutes);
 app.use("/api/tipos-ingreso", tipoIngresoRoutes);
+app.use("/api/modalidades", modalidadRoutes);
+app.use("/api/tipos-modalidad", tipoModalidadRoutes);
+app.use("/api/turnos", turnoRoutes);
+app.use("/api/grupos", grupoRoutes);
 // app.use('/api/roles', rolesRoutes);
 // app.use('/api/matricula', matriculaRoutes);
 
