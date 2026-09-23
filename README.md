@@ -16,6 +16,13 @@ npm install
 npm run dev
 ```
 
+En caso de no haber reconstruido correctamente la base de datos o de estar
+desactualizado utilizar el siguiente comando antes de correr el sistema:
+
+```bash
+npm run migrate
+```
+
 ## Cómo levantar el frontend
 
 ```bash
@@ -32,10 +39,9 @@ avisa automaticamente que las credenciales estan incompletas o que no existen.
 
 ## Qué falta por completar (a repartir entre el equipo)
 
-- Script de migración de datos (`funciones_usuario`/`menu_usuario` → roles reales).
-- Rutas y controladores de `roles`, `centros`, `carreras`, `matricula`.
-- Pantallas de dominio en `pages/` (actualmente solo existe `Login`).
-- Pruebas en `tests/requirePermission.test.js` (están como `it.todo`).
+- Vistas de Catalogos y sus respectivas vistas de modulos
+- Modulos de Catalogos Educacion en el backend y sus respectivas vistas
+- Modulos de Matricula y Reporte, asi como sus vistas
 
 Ver la guía paso a paso de migración de base de datos y la estructura de
 carpetas completa acordada por el equipo para más contexto.

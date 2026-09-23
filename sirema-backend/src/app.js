@@ -15,6 +15,12 @@ import comunidadRoutes from "./routes/comunidad.routes.js";
 import tipoCentroRoutes from "./routes/tipoCentro.routes.js";
 import centroRoutes from "./routes/centro.routes.js";
 import etniaRoutes from "./routes/etnia.routes.js";
+import anioCarreraRoutes from "./routes/anioCarrera.routes.js";
+import anioLectivoRoutes from "./routes/anioLectivo.routes.js";
+import areaConocimientoRoutes from "./routes/areaConocimiento.routes.js";
+import carreraRoutes from "./routes/carrera.routes.js";
+import semestreRoutes from "./routes/semestre.routes.js";
+import tipoIngresoRoutes from "./routes/tipoIngreso.routes.js";
 import administracionRoutes from "./routes/administracion.routes.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
 
@@ -56,6 +62,12 @@ app.use("/api/administracion", administracionRoutes);
 app.use("/api/tipos-centro", tipoCentroRoutes);
 app.use("/api/centros", centroRoutes);
 app.use("/api/etnias", etniaRoutes);
+app.use("/api/anios-carrera", anioCarreraRoutes);
+app.use("/api/anios-lectivo", anioLectivoRoutes);
+app.use("/api/areas-conocimiento", areaConocimientoRoutes);
+app.use("/api/carreras", carreraRoutes);
+app.use("/api/semestres", semestreRoutes);
+app.use("/api/tipos-ingreso", tipoIngresoRoutes);
 // app.use('/api/roles', rolesRoutes);
 // app.use('/api/matricula', matriculaRoutes);
 
