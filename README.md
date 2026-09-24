@@ -23,6 +23,9 @@ desactualizado utilizar el siguiente comando antes de correr el sistema:
 npm run migrate
 ```
 
+Adicionalmente se deben correr los dos archivos sql que estan en el proyecto
+dentro de un gestor de base de datos como MySQL Workbench
+
 ## Cómo levantar el frontend
 
 ```bash
