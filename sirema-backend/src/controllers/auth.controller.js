@@ -34,8 +34,14 @@ export async function login(req, res, next) {
     // Esto es el equivalente exacto de $_SESSION['usuario'] = [...] en PHP.
     // express-session guarda esto en el servidor y solo manda al navegador
     // un ID de sesión dentro de una cookie httpOnly (por defecto: connect.sid).
+    // NOTA: nombreUsuario se agrega aquí porque TODOS los procedimientos de
+    // matrícula (registro_matricula_*, permiso_centros_usuario,
+    // permiso_carreras_centro_usuario) reciben el username, no el Id, para
+    // resolver el alcance del usuario actual -- así lo diseñó el sistema
+    // original ($_SESSION['usuario'] ahí guardaba el username, no el Id).
     req.session.usuario = {
       usuarioId: usuario.Id,
+      nombreUsuario: usuario.NombreUsuario,
       rolId: usuario.Rol_Id,
       centros: centros.map((c) => c.Centro_Id),
     };

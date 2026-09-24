@@ -25,6 +25,8 @@ import modalidadRoutes from "./routes/modalidad.routes.js";
 import tipoModalidadRoutes from "./routes/tipoModalidad.routes.js";
 import turnoRoutes from "./routes/turno.routes.js";
 import grupoRoutes from "./routes/grupo.routes.js";
+import matriculaRoutes from "./routes/matricula.routes.js";
+import reporteRoutes from "./routes/reporte.routes.js";
 import administracionRoutes from "./routes/administracion.routes.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
 
@@ -76,8 +78,9 @@ app.use("/api/modalidades", modalidadRoutes);
 app.use("/api/tipos-modalidad", tipoModalidadRoutes);
 app.use("/api/turnos", turnoRoutes);
 app.use("/api/grupos", grupoRoutes);
+app.use("/api/matricula", matriculaRoutes);
+app.use("/api/reportes", reporteRoutes);
 // app.use('/api/roles', rolesRoutes);
-// app.use('/api/matricula', matriculaRoutes);
 
 app.use(errorHandler);
 

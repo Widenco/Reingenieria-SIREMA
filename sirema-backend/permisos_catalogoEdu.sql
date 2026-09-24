@@ -1,5 +1,3 @@
-USE `sirema`;
-
 -- Ajusta este Id antes de correr el script
 SET @rolId = 1;
 
@@ -44,13 +42,17 @@ SELECT * FROM (SELECT 'anioCarreraController' AS c, 'index' AS a, 'ANCIN' AS ac,
   UNION ALL SELECT 'tiposModalidadController', 'insert', 'TMCNUCR', 1
   UNION ALL SELECT 'tiposModalidadController', 'update', 'TMCNUUP', 1
   UNION ALL SELECT 'tiposModalidadController', 'change_state', 'TMCNUCHS', 1
+  UNION ALL SELECT 'matriculadoController', 'index', 'MATRIN', 1
+  UNION ALL SELECT 'matriculadoController', 'insert', 'MATRCR', 1
+  UNION ALL SELECT 'matriculadoController', 'anular', 'MATRCHS', 1
+  UNION ALL SELECT 'reporteController', 'index', 'REPIN', 1
 ) AS nuevos
 WHERE NOT EXISTS (
   SELECT 1 FROM funciones f WHERE f.Acronimo = nuevos.ac
 );
 
--- Asigna TODOS los acronimos de catalogoEdu (más los que ya tenías, si
--- corres esto de nuevo no duplica gracias al WHERE NOT EXISTS)
+-- Asigna TODOS los acronimos (más los que ya tenías, si corres esto de
+-- nuevo no duplica gracias al WHERE NOT EXISTS)
 INSERT INTO rol_funciones (Rol_Id, Funcion_Id)
 SELECT @rolId, f.Id
 FROM funciones f
@@ -64,13 +66,14 @@ WHERE f.Acronimo IN (
   'TININ','TINCR','TINUP','TINCHS',
   'GRPIN','GRPCR','GRPUP','GRPCHS',
   'TURIN','TURCR','TURUP','TURCHS',
-  'TMCNUIN','TMCNUCR','TMCNUUP','TMCNUCHS'
+  'TMCNUIN','TMCNUCR','TMCNUUP','TMCNUCHS',
+  'MATRIN','MATRCR','MATRCHS','REPIN'
 )
 AND NOT EXISTS (
   SELECT 1 FROM rol_funciones rf WHERE rf.Rol_Id = @rolId AND rf.Funcion_Id = f.Id
 );
 
--- Verificación: deberías ver 40 filas
+-- Verificación: deberías ver 44 filas
 SELECT COUNT(*) AS permisos_asignados
 FROM rol_funciones rf
 INNER JOIN funciones f ON f.Id = rf.Funcion_Id
@@ -80,5 +83,6 @@ AND f.Acronimo IN (
   'ARCIN','ARCCR','ARCUP','ARCCHS','CARIN','CARCR','CARUP','CARCHS',
   'MODIN','MODCR','MODUP','MODCHS','SEMIN','SEMCR','SEMUP','SEMCHS',
   'TININ','TINCR','TINUP','TINCHS','GRPIN','GRPCR','GRPUP','GRPCHS',
-  'TURIN','TURCR','TURUP','TURCHS','TMCNUIN','TMCNUCR','TMCNUUP','TMCNUCHS'
+  'TURIN','TURCR','TURUP','TURCHS','TMCNUIN','TMCNUCR','TMCNUUP','TMCNUCHS',
+  'MATRIN','MATRCR','MATRCHS','REPIN'
 );
