@@ -7,5 +7,15 @@ export const listarCarrerasPertenecientes = (centroId) =>
 
 export const listarCarrerasDisponibles = (centroId) =>
   axiosClient
-    .get(`/carreras-centro/no-pertenecentes/${centroId}`)
+    .get(`/carreras-centro/no-pertenecientes/${centroId}`)
+    .then((r) => r.data);
+
+export const habilitarCarreraCentro = (carreraId, centroId) =>
+  axiosClient
+    .post('/carreras-centro/habilitar', { carreraId, centroId })
+    .then((r) => r.data);
+
+export const deshabilitarCarreraCentro = (id) =>
+  axiosClient
+    .patch(`/carreras-centro/${id}/deshabilitar`)
     .then((r) => r.data);

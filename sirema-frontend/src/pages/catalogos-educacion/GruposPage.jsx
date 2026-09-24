@@ -1,21 +1,132 @@
 import { useEffect, useState } from 'react';
-import { listarGrupos } from '../../api/endpoints/grupos.js';
+import {
+  listarGrupos,
+  crearGrupo,
+  actualizarGrupo,
+  cambiarEstadoGrupo,
+} from '../../api/endpoints/grupos.js';
+import { NotificacionModal } from '../../components/modales/NotificacionModal.jsx';
+import { ConfirmacionModal } from '../../components/modales/ConfirmacionModal.jsx';
+import { FormularioModal } from '../../components/modales/FormularioModal.jsx';
 import styles from '../administracion/AdministracionPage.module.css';
 
 export function GruposPage() {
   const [datos, setDatos] = useState(null);
   const [error, setError] = useState('');
 
-  useEffect(() => {
+  const [modalAbierto, setModalAbierto] = useState(false);
+  const [grupoEditando, setGrupoEditando] = useState(null);
+  const [descripcion, setDescripcion] = useState('');
+  const [guardando, setGuardando] = useState(false);
+
+  const [confirmacion, setConfirmacion] = useState(null);
+  const [procesandoEstado, setProcesandoEstado] = useState(false);
+
+  const [notificacion, setNotificacion] = useState(null);
+
+  const cargar = () => {
     listarGrupos()
       .then(setDatos)
       .catch(() => setError('No fue posible cargar los grupos.'));
-  }, []);
+  };
+
+  useEffect(() => { cargar(); }, []);
+
+  const abrirCrear = () => {
+    setGrupoEditando(null);
+    setDescripcion('');
+    setModalAbierto(true);
+  };
+
+  const abrirEditar = (grupo) => {
+    setGrupoEditando(grupo);
+    setDescripcion(grupo.DescripcionGrupo);
+    setModalAbierto(true);
+  };
+
+  const cerrarModal = () => {
+    if (guardando) return;
+    setModalAbierto(false);
+    setGrupoEditando(null);
+    setDescripcion('');
+  };
+
+  const guardar = async (e) => {
+    e.preventDefault();
+    if (!descripcion.trim()) {
+      setNotificacion({
+        tipo: 'error',
+        titulo: 'Campo obligatorio',
+        mensaje: 'La descripción es obligatoria.',
+      });
+      return;
+    }
+
+    try {
+      setGuardando(true);
+      if (grupoEditando) {
+        await actualizarGrupo(grupoEditando.Id, { descripcion: descripcion.trim() });
+        setNotificacion({
+          tipo: 'exito',
+          titulo: '¡Guardado!',
+          mensaje: 'El Grupo ha sido actualizado exitosamente.',
+        });
+      } else {
+        await crearGrupo({ descripcion: descripcion.trim() });
+        setNotificacion({
+          tipo: 'exito',
+          titulo: '¡Guardado!',
+          mensaje: 'El Grupo ha sido creado exitosamente.',
+        });
+      }
+      cerrarModal();
+      cargar();
+    } catch (err) {
+      setNotificacion({
+        tipo: 'error',
+        titulo: 'Error',
+        mensaje: err?.response?.data?.error || 'No fue posible guardar el grupo.',
+      });
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  const pedirConfirmacion = (grupo) => setConfirmacion({ grupo });
+
+  const cerrarConfirmacion = () => {
+    if (procesandoEstado) return;
+    setConfirmacion(null);
+  };
+
+  const ejecutarCambioEstado = async () => {
+    if (!confirmacion) return;
+    try {
+      setProcesandoEstado(true);
+      await cambiarEstadoGrupo(confirmacion.grupo.Id);
+      setConfirmacion(null);
+      setNotificacion({
+        tipo: 'exito',
+        titulo: '¡Guardado!',
+        mensaje: 'El estado del registro se actualizó correctamente.',
+      });
+      cargar();
+    } catch (err) {
+      setConfirmacion(null);
+      setNotificacion({
+        tipo: 'error',
+        titulo: 'Error',
+        mensaje: err?.response?.data?.error || 'No fue posible cambiar el estado.',
+      });
+    } finally {
+      setProcesandoEstado(false);
+    }
+  };
 
   return (
     <main className={styles.page}>
       <header className={styles.header}>
-        <p>Catálogos Educación</p>
+        <p>Catálogos</p>
         <h1>Grupos</h1>
         <span>Grupos registrados en el sistema.</span>
       </header>
@@ -27,7 +138,24 @@ export function GruposPage() {
         <section className={styles.card}>
           <div className={styles.cardHeader}>
             <h2>Grupos</h2>
-            <span>{datos.length} registros</span>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+              <span>{datos.length} registros</span>
+              <button
+                type="button"
+                onClick={abrirCrear}
+                style={{
+                  background: '#1e40af',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '0.375rem',
+                  padding: '0.5rem 1rem',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                }}
+              >
+                + Nuevo Grupo
+              </button>
+            </div>
           </div>
           <div className={styles.tableWrap}>
             <table>
@@ -35,6 +163,7 @@ export function GruposPage() {
                 <tr>
                   <th>Grupo</th>
                   <th>Estado</th>
+                  <th style={{ width: '200px' }}>Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -46,12 +175,77 @@ export function GruposPage() {
                         {x.Estado ? 'Activo' : 'Inactivo'}
                       </span>
                     </td>
+                    <td>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button
+                          type="button"
+                          onClick={() => abrirEditar(x)}
+                          style={{
+                            background: '#e5e7eb',
+                            color: '#1f2937',
+                            border: 'none',
+                            borderRadius: '0.375rem',
+                            padding: '0.25rem 0.75rem',
+                            cursor: 'pointer',
+                            fontSize: '0.85rem',
+                          }}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => pedirConfirmacion(x)}
+                          style={{
+                            background: x.Estado ? '#fee2e2' : '#dcfce7',
+                            color: x.Estado ? '#991b1b' : '#166534',
+                            border: 'none',
+                            borderRadius: '0.375rem',
+                            padding: '0.25rem 0.75rem',
+                            cursor: 'pointer',
+                            fontSize: '0.85rem',
+                          }}
+                        >
+                          {x.Estado ? 'Desactivar' : 'Activar'}
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         </section>
+      )}
+
+      {modalAbierto && (
+        <FormularioModal
+          titulo={grupoEditando ? 'Editar Grupo' : 'Nuevo Grupo'}
+          label="Descripción"
+          valor={descripcion}
+          onChange={(e) => setDescripcion(e.target.value)}
+          onSubmit={guardar}
+          onCancel={cerrarModal}
+          guardando={guardando}
+          placeholder="Ej: A"
+          maxLength={3}
+        />
+      )}
+
+      {confirmacion && (
+        <ConfirmacionModal
+          procesando={procesandoEstado}
+          onConfirmar={ejecutarCambioEstado}
+          onCancelar={cerrarConfirmacion}
+        />
+      )}
+
+      {notificacion && (
+        <NotificacionModal
+          tipo={notificacion.tipo}
+          titulo={notificacion.titulo}
+          mensaje={notificacion.mensaje}
+          onClose={() => setNotificacion(null)}
+        />
       )}
     </main>
   );

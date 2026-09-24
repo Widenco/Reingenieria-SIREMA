@@ -35,7 +35,7 @@ const enlacesCatalogosEducacion = [
   ['/catalogos-educacion/tipos-modalidad', 'Tipos Modalidad CNU'],
 ];
 
-const enlacesRegistros = [];  // placeholder
+const enlacesRegistros = [['/registros/matriculados', 'Matriculados']];  // placeholder
 const enlacesReportes  = [];  // placeholder
 
 export function Sidebar() {

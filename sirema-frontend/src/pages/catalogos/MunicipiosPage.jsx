@@ -1,16 +1,127 @@
 import { useEffect, useState } from 'react';
-import { listarMunicipios } from '../../api/endpoints/municipios.js';
+import {
+  listarMunicipios,
+  crearMunicipio,
+  actualizarMunicipio,
+  cambiarEstadoMunicipio,
+} from '../../api/endpoints/municipios.js';
+import { NotificacionModal } from '../../components/modales/NotificacionModal.jsx';
+import { ConfirmacionModal } from '../../components/modales/ConfirmacionModal.jsx';
+import { FormularioModal } from '../../components/modales/FormularioModal.jsx';
 import styles from '../administracion/AdministracionPage.module.css';
 
 export function MunicipiosPage() {
   const [datos, setDatos] = useState(null);
   const [error, setError] = useState('');
 
-  useEffect(() => {
+  const [modalAbierto, setModalAbierto] = useState(false);
+  const [municipioEditando, setMunicipioEditando] = useState(null);
+  const [descripcion, setDescripcion] = useState('');
+  const [guardando, setGuardando] = useState(false);
+
+  const [confirmacion, setConfirmacion] = useState(null);
+  const [procesandoEstado, setProcesandoEstado] = useState(false);
+
+  const [notificacion, setNotificacion] = useState(null);
+
+  const cargar = () => {
     listarMunicipios()
       .then(setDatos)
       .catch(() => setError('No fue posible cargar los municipios.'));
-  }, []);
+  };
+
+  useEffect(() => { cargar(); }, []);
+
+  const abrirCrear = () => {
+    setMunicipioEditando(null);
+    setDescripcion('');
+    setModalAbierto(true);
+  };
+
+  const abrirEditar = (item) => {
+    setMunicipioEditando(item);
+    setDescripcion(item.DescripcionMunicipio);
+    setModalAbierto(true);
+  };
+
+  const cerrarModal = () => {
+    if (guardando) return;
+    setModalAbierto(false);
+    setMunicipioEditando(null);
+    setDescripcion('');
+  };
+
+  const guardar = async (e) => {
+    e.preventDefault();
+    if (!descripcion.trim()) {
+      setNotificacion({
+        tipo: 'error',
+        titulo: 'Campo obligatorio',
+        mensaje: 'La descripción es obligatoria.',
+      });
+      return;
+    }
+
+    try {
+      setGuardando(true);
+      if (municipioEditando) {
+        await actualizarMunicipio(municipioEditando.Id, { descripcion: descripcion.trim() });
+        setNotificacion({
+          tipo: 'exito',
+          titulo: '¡Guardado!',
+          mensaje: 'El Municipio ha sido actualizado exitosamente.',
+        });
+      } else {
+        await crearMunicipio({ descripcion: descripcion.trim() });
+        setNotificacion({
+          tipo: 'exito',
+          titulo: '¡Guardado!',
+          mensaje: 'El Municipio ha sido creado exitosamente.',
+        });
+      }
+      cerrarModal();
+      cargar();
+    } catch (err) {
+      setNotificacion({
+        tipo: 'error',
+        titulo: 'Error',
+        mensaje: err?.response?.data?.error || 'No fue posible guardar el municipio.',
+      });
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  const pedirConfirmacion = (item) => setConfirmacion({ item });
+
+  const cerrarConfirmacion = () => {
+    if (procesandoEstado) return;
+    setConfirmacion(null);
+  };
+
+  const ejecutarCambioEstado = async () => {
+    if (!confirmacion) return;
+    try {
+      setProcesandoEstado(true);
+      await cambiarEstadoMunicipio(confirmacion.item.Id);
+      setConfirmacion(null);
+      setNotificacion({
+        tipo: 'exito',
+        titulo: '¡Guardado!',
+        mensaje: 'El estado del registro se actualizó correctamente.',
+      });
+      cargar();
+    } catch (err) {
+      setConfirmacion(null);
+      setNotificacion({
+        tipo: 'error',
+        titulo: 'Error',
+        mensaje: err?.response?.data?.error || 'No fue posible cambiar el estado.',
+      });
+    } finally {
+      setProcesandoEstado(false);
+    }
+  };
 
   return (
     <main className={styles.page}>
@@ -27,7 +138,24 @@ export function MunicipiosPage() {
         <section className={styles.card}>
           <div className={styles.cardHeader}>
             <h2>Municipios</h2>
-            <span>{datos.length} registros</span>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+              <span>{datos.length} registros</span>
+              <button
+                type="button"
+                onClick={abrirCrear}
+                style={{
+                  background: '#1e40af',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '0.375rem',
+                  padding: '0.5rem 1rem',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                }}
+              >
+                + Nuevo Municipio
+              </button>
+            </div>
           </div>
           <div className={styles.tableWrap}>
             <table>
@@ -35,6 +163,7 @@ export function MunicipiosPage() {
                 <tr>
                   <th>Municipio</th>
                   <th>Estado</th>
+                  <th style={{ width: '200px' }}>Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -46,12 +175,77 @@ export function MunicipiosPage() {
                         {x.Estado ? 'Activo' : 'Inactivo'}
                       </span>
                     </td>
+                    <td>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button
+                          type="button"
+                          onClick={() => abrirEditar(x)}
+                          style={{
+                            background: '#e5e7eb',
+                            color: '#1f2937',
+                            border: 'none',
+                            borderRadius: '0.375rem',
+                            padding: '0.25rem 0.75rem',
+                            cursor: 'pointer',
+                            fontSize: '0.85rem',
+                          }}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => pedirConfirmacion(x)}
+                          style={{
+                            background: x.Estado ? '#fee2e2' : '#dcfce7',
+                            color: x.Estado ? '#991b1b' : '#166534',
+                            border: 'none',
+                            borderRadius: '0.375rem',
+                            padding: '0.25rem 0.75rem',
+                            cursor: 'pointer',
+                            fontSize: '0.85rem',
+                          }}
+                        >
+                          {x.Estado ? 'Desactivar' : 'Activar'}
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         </section>
+      )}
+
+      {modalAbierto && (
+        <FormularioModal
+          titulo={municipioEditando ? 'Editar Municipio' : 'Nuevo Municipio'}
+          label="Descripción"
+          valor={descripcion}
+          onChange={(e) => setDescripcion(e.target.value)}
+          onSubmit={guardar}
+          onCancel={cerrarModal}
+          guardando={guardando}
+          placeholder="Ej: Bluefields"
+          maxLength={140}
+        />
+      )}
+
+      {confirmacion && (
+        <ConfirmacionModal
+          procesando={procesandoEstado}
+          onConfirmar={ejecutarCambioEstado}
+          onCancelar={cerrarConfirmacion}
+        />
+      )}
+
+      {notificacion && (
+        <NotificacionModal
+          tipo={notificacion.tipo}
+          titulo={notificacion.titulo}
+          mensaje={notificacion.mensaje}
+          onClose={() => setNotificacion(null)}
+        />
       )}
     </main>
   );

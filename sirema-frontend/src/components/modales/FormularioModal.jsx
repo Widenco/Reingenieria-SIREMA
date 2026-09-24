@@ -10,6 +10,7 @@ export function FormularioModal({
   guardando,
   placeholder = '',
   maxLength = 100,
+  extraField = null,   // ← NUEVO: JSX opcional para campos adicionales
 }) {
   return (
     <Modal onClose={guardando ? undefined : onCancel} maxWidth="500px">
@@ -36,6 +37,9 @@ export function FormularioModal({
             fontSize: '1rem',
           }}
         />
+
+        {/* Campo extra (select, etc.) */}
+        {extraField}
 
         <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
           <button

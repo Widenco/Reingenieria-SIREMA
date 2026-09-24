@@ -1,16 +1,127 @@
 import { useEffect, useState } from 'react';
-import { listarTiposIngreso } from '../../api/endpoints/tiposIngreso.js';
+import {
+  listarTiposIngreso,
+  crearTipoIngreso,
+  actualizarTipoIngreso,
+  cambiarEstadoTipoIngreso,
+} from '../../api/endpoints/tiposIngreso.js';
+import { NotificacionModal } from '../../components/modales/NotificacionModal.jsx';
+import { ConfirmacionModal } from '../../components/modales/ConfirmacionModal.jsx';
+import { FormularioModal } from '../../components/modales/FormularioModal.jsx';
 import styles from '../administracion/AdministracionPage.module.css';
 
 export function TiposIngresoPage() {
   const [datos, setDatos] = useState(null);
   const [error, setError] = useState('');
 
-  useEffect(() => {
+  const [modalAbierto, setModalAbierto] = useState(false);
+  const [tipoEditando, setTipoEditando] = useState(null);
+  const [descripcion, setDescripcion] = useState('');
+  const [guardando, setGuardando] = useState(false);
+
+  const [confirmacion, setConfirmacion] = useState(null);
+  const [procesandoEstado, setProcesandoEstado] = useState(false);
+
+  const [notificacion, setNotificacion] = useState(null);
+
+  const cargar = () => {
     listarTiposIngreso()
       .then(setDatos)
       .catch(() => setError('No fue posible cargar los tipos de ingreso.'));
-  }, []);
+  };
+
+  useEffect(() => { cargar(); }, []);
+
+  const abrirCrear = () => {
+    setTipoEditando(null);
+    setDescripcion('');
+    setModalAbierto(true);
+  };
+
+  const abrirEditar = (tipo) => {
+    setTipoEditando(tipo);
+    setDescripcion(tipo.DescripcionTipoIngreso);
+    setModalAbierto(true);
+  };
+
+  const cerrarModal = () => {
+    if (guardando) return;
+    setModalAbierto(false);
+    setTipoEditando(null);
+    setDescripcion('');
+  };
+
+  const guardar = async (e) => {
+    e.preventDefault();
+    if (!descripcion.trim()) {
+      setNotificacion({
+        tipo: 'error',
+        titulo: 'Campo obligatorio',
+        mensaje: 'La descripción es obligatoria.',
+      });
+      return;
+    }
+
+    try {
+      setGuardando(true);
+      if (tipoEditando) {
+        await actualizarTipoIngreso(tipoEditando.Id, { descripcion: descripcion.trim() });
+        setNotificacion({
+          tipo: 'exito',
+          titulo: '¡Guardado!',
+          mensaje: 'El Tipo de Ingreso ha sido actualizado exitosamente.',
+        });
+      } else {
+        await crearTipoIngreso({ descripcion: descripcion.trim() });
+        setNotificacion({
+          tipo: 'exito',
+          titulo: '¡Guardado!',
+          mensaje: 'El Tipo de Ingreso ha sido creado exitosamente.',
+        });
+      }
+      cerrarModal();
+      cargar();
+    } catch (err) {
+      setNotificacion({
+        tipo: 'error',
+        titulo: 'Error',
+        mensaje: err?.response?.data?.error || 'No fue posible guardar el tipo de ingreso.',
+      });
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  const pedirConfirmacion = (tipo) => setConfirmacion({ tipo });
+
+  const cerrarConfirmacion = () => {
+    if (procesandoEstado) return;
+    setConfirmacion(null);
+  };
+
+  const ejecutarCambioEstado = async () => {
+    if (!confirmacion) return;
+    try {
+      setProcesandoEstado(true);
+      await cambiarEstadoTipoIngreso(confirmacion.tipo.Id);
+      setConfirmacion(null);
+      setNotificacion({
+        tipo: 'exito',
+        titulo: '¡Guardado!',
+        mensaje: 'El estado del registro se actualizó correctamente.',
+      });
+      cargar();
+    } catch (err) {
+      setConfirmacion(null);
+      setNotificacion({
+        tipo: 'error',
+        titulo: 'Error',
+        mensaje: err?.response?.data?.error || 'No fue posible cambiar el estado.',
+      });
+    } finally {
+      setProcesandoEstado(false);
+    }
+  };
 
   return (
     <main className={styles.page}>
@@ -27,7 +138,24 @@ export function TiposIngresoPage() {
         <section className={styles.card}>
           <div className={styles.cardHeader}>
             <h2>Tipos de Ingreso</h2>
-            <span>{datos.length} registros</span>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+              <span>{datos.length} registros</span>
+              <button
+                type="button"
+                onClick={abrirCrear}
+                style={{
+                  background: '#1e40af',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '0.375rem',
+                  padding: '0.5rem 1rem',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                }}
+              >
+                + Nuevo Tipo de Ingreso
+              </button>
+            </div>
           </div>
           <div className={styles.tableWrap}>
             <table>
@@ -35,6 +163,7 @@ export function TiposIngresoPage() {
                 <tr>
                   <th>Tipo de Ingreso</th>
                   <th>Estado</th>
+                  <th style={{ width: '200px' }}>Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -46,12 +175,77 @@ export function TiposIngresoPage() {
                         {x.Estado ? 'Activo' : 'Inactivo'}
                       </span>
                     </td>
+                    <td>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button
+                          type="button"
+                          onClick={() => abrirEditar(x)}
+                          style={{
+                            background: '#e5e7eb',
+                            color: '#1f2937',
+                            border: 'none',
+                            borderRadius: '0.375rem',
+                            padding: '0.25rem 0.75rem',
+                            cursor: 'pointer',
+                            fontSize: '0.85rem',
+                          }}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => pedirConfirmacion(x)}
+                          style={{
+                            background: x.Estado ? '#fee2e2' : '#dcfce7',
+                            color: x.Estado ? '#991b1b' : '#166534',
+                            border: 'none',
+                            borderRadius: '0.375rem',
+                            padding: '0.25rem 0.75rem',
+                            cursor: 'pointer',
+                            fontSize: '0.85rem',
+                          }}
+                        >
+                          {x.Estado ? 'Desactivar' : 'Activar'}
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         </section>
+      )}
+
+      {modalAbierto && (
+        <FormularioModal
+          titulo={tipoEditando ? 'Editar Tipo de Ingreso' : 'Nuevo Tipo de Ingreso'}
+          label="Descripción"
+          valor={descripcion}
+          onChange={(e) => setDescripcion(e.target.value)}
+          onSubmit={guardar}
+          onCancel={cerrarModal}
+          guardando={guardando}
+          placeholder="Ej: 1° Ingreso"
+          maxLength={50}
+        />
+      )}
+
+      {confirmacion && (
+        <ConfirmacionModal
+          procesando={procesandoEstado}
+          onConfirmar={ejecutarCambioEstado}
+          onCancelar={cerrarConfirmacion}
+        />
+      )}
+
+      {notificacion && (
+        <NotificacionModal
+          tipo={notificacion.tipo}
+          titulo={notificacion.titulo}
+          mensaje={notificacion.mensaje}
+          onClose={() => setNotificacion(null)}
+        />
       )}
     </main>
   );

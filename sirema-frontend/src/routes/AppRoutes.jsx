@@ -21,7 +21,8 @@ import { AniosLectivosPage } from '../pages/catalogos-educacion/AniosLectivosPag
 import { TurnosPage } from '../pages/catalogos-educacion/TurnosPage.jsx';
 import { GruposPage } from '../pages/catalogos-educacion/GruposPage.jsx';
 import { TiposModalidadPage } from '../pages/catalogos-educacion/TiposModalidadPage.jsx';
-
+import { MatriculadosPage } from '../pages/registros/MatriculadosPage.jsx';
+import { NuevoRegistroPage } from '../pages/registros/NuevoRegistroPage.jsx';
 
 export function AppRoutes() {
   return (
@@ -56,6 +57,11 @@ export function AppRoutes() {
           <Route path="/catalogos-educacion/turnos" element={<TurnosPage />} />
           <Route path="/catalogos-educacion/grupos" element={<GruposPage />} />
           <Route path="/catalogos-educacion/tipos-modalidad" element={<TiposModalidadPage />} />
+
+          {/* Registros */}
+          <Route path="/registros/matriculados" element={<MatriculadosPage />} />
+          <Route path="/registros/matriculados/nuevo" element={<NuevoRegistroPage />} />
+
         </Route>
       </Routes>
     </BrowserRouter>
