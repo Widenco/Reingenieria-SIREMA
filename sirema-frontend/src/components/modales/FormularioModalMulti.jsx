@@ -1,18 +1,15 @@
 import { Modal } from './Modal.jsx';
 
 /**
- * Modal de formulario con N campos.
+ * Modal de formulario con N campos en grid.
  * 
- * campos: array de objetos con:
- *   - key: nombre del campo en el state (ej: 'descripcion')
- *   - label: etiqueta visible
- *   - tipo: 'text' | 'select'
- *   - valor: valor actual
- *   - onChange: función onChange
- *   - placeholder: (opcional, para text)
- *   - maxLength: (opcional, para text)
- *   - opciones: (para select) array de { valor, texto }
- *   - required: (opcional) default true
+ * Cada campo puede tener:
+ *   - key, label, tipo ('text' | 'select' | 'checkbox')
+ *   - valor, onChange
+ *   - placeholder, maxLength (para text)
+ *   - opciones (para select)
+ *   - required (default true, ignorado para checkbox)
+ *   - ancho: 'completo' (default) | 'medio' — para grid de 2 columnas
  */
 export function FormularioModalMulti({
   titulo,
@@ -20,22 +17,26 @@ export function FormularioModalMulti({
   onSubmit,
   onCancel,
   guardando,
-  maxWidth = '560px',
+  maxWidth = '700px',
+  textoGuardar = 'Guardar',
+  colorGuardar = '#1e40af',   // azul por defecto
 }) {
   const inputStyle = {
     width: '100%',
-    padding: '0.5rem',
+    padding: '0.5rem 0.75rem',
     border: '1px solid #d1d5db',
     borderRadius: '0.375rem',
-    fontSize: '1rem',
+    fontSize: '0.95rem',
     background: 'white',
+    boxSizing: 'border-box',
   };
 
   const labelStyle = {
     display: 'block',
     marginBottom: '0.5rem',
-    fontWeight: 600,
+    fontWeight: 500,
     fontSize: '0.9rem',
+    color: '#334155',
   };
 
   return (
@@ -43,44 +44,86 @@ export function FormularioModalMulti({
       <h2 style={{ marginTop: 0, marginBottom: '1.5rem' }}>{titulo}</h2>
 
       <form onSubmit={onSubmit}>
-        {campos.map((campo, i) => (
-          <div key={campo.key} style={{ marginBottom: '1.25rem' }}>
-            <label style={labelStyle}>
-              {campo.label}
-              {campo.required === false && (
-                <span style={{ fontWeight: 400, color: '#6b7280', marginLeft: '0.5rem' }}>
-                  (opcional)
-                </span>
-              )}
-            </label>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '1.25rem',
+            marginBottom: '1.5rem',
+          }}
+        >
+          {campos.map((campo, i) => {
+            const span = campo.ancho === 'completo' || campo.ancho === undefined ? 'auto' : 'auto';
+            const gridColumn = campo.ancho === 'completo' ? 'span 2' : 'span 1';
 
-            {campo.tipo === 'select' ? (
-              <select
-                value={campo.valor}
-                onChange={campo.onChange}
-                required={campo.required !== false}
-                style={inputStyle}
-              >
-                {campo.opciones.map((op) => (
-                  <option key={op.valor} value={op.valor}>
-                    {op.texto}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <input
-                type="text"
-                value={campo.valor}
-                onChange={campo.onChange}
-                required={campo.required !== false}
-                maxLength={campo.maxLength || 100}
-                placeholder={campo.placeholder || ''}
-                autoFocus={i === 0}
-                style={inputStyle}
-              />
-            )}
-          </div>
-        ))}
+            return (
+              <div key={campo.key} style={{ gridColumn }}>
+                {campo.tipo === 'checkbox' ? (
+                  <label
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      cursor: 'pointer',
+                      paddingTop: '1.5rem',
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={!!campo.valor}
+                      onChange={campo.onChange}
+                      style={{
+                        width: '18px',
+                        height: '18px',
+                        cursor: 'pointer',
+                      }}
+                    />
+                    <span style={{ fontWeight: 500, fontSize: '0.9rem', color: '#334155' }}>
+                      {campo.label}
+                    </span>
+                  </label>
+                ) : (
+                  <>
+                    <label style={labelStyle}>
+                      {campo.label}
+                      {campo.required === false && campo.tipo !== 'checkbox' && (
+                        <span style={{ fontWeight: 400, color: '#94a3b8', marginLeft: '0.35rem' }}>
+                          (opcional)
+                        </span>
+                      )}
+                    </label>
+
+                    {campo.tipo === 'select' ? (
+                      <select
+                        value={campo.valor}
+                        onChange={campo.onChange}
+                        required={campo.required !== false}
+                        style={inputStyle}
+                      >
+                        {campo.opciones.map((op) => (
+                          <option key={op.valor} value={op.valor}>
+                            {op.texto}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        type="text"
+                        value={campo.valor}
+                        onChange={campo.onChange}
+                        required={campo.required !== false}
+                        maxLength={campo.maxLength || 100}
+                        placeholder={campo.placeholder || ''}
+                        autoFocus={i === 0}
+                        style={inputStyle}
+                      />
+                    )}
+                  </>
+                )}
+              </div>
+            );
+          })}
+        </div>
 
         <div
           style={{
@@ -99,8 +142,9 @@ export function FormularioModalMulti({
               color: '#1f2937',
               border: 'none',
               borderRadius: '0.375rem',
-              padding: '0.5rem 1rem',
+              padding: '0.6rem 1.25rem',
               cursor: guardando ? 'not-allowed' : 'pointer',
+              fontWeight: 600,
             }}
           >
             Cancelar
@@ -109,16 +153,16 @@ export function FormularioModalMulti({
             type="submit"
             disabled={guardando}
             style={{
-              background: '#1e40af',
+              background: colorGuardar,
               color: 'white',
               border: 'none',
               borderRadius: '0.375rem',
-              padding: '0.5rem 1rem',
+              padding: '0.6rem 1.25rem',
               cursor: guardando ? 'not-allowed' : 'pointer',
               fontWeight: 600,
             }}
           >
-            {guardando ? 'Guardando…' : 'Guardar'}
+            {guardando ? 'Guardando…' : textoGuardar}
           </button>
         </div>
       </form>

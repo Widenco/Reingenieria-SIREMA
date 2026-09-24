@@ -19,8 +19,6 @@ const enlacesCatalogos = [
   ['/catalogos/etnias', 'Etnia'],
 ];
 
-// Los 11 de "Catálogos Educación" (mismo orden que el PHP original).
-// Las rutas ya están definidas aunque las páginas se creen después.
 const enlacesCatalogosEducacion = [
   ['/catalogos-educacion/areas', 'Áreas del Conocimiento'],
   ['/catalogos-educacion/carreras', 'Carrera'],
@@ -35,12 +33,20 @@ const enlacesCatalogosEducacion = [
   ['/catalogos-educacion/tipos-modalidad', 'Tipos Modalidad CNU'],
 ];
 
-const enlacesRegistros = [['/registros/matriculados', 'Matriculados']];  // placeholder
-const enlacesReportes  = [];  // placeholder
+const enlacesRegistros = [
+  ['/registros/matriculados', 'Matriculados'],
+];
+
+const enlacesReportes = []; // placeholder
 
 export function Sidebar() {
   const navigate = useNavigate();
   const { session, setSession } = useSession();
+
+  // 🎯 Determinar permisos según el rol
+  const rolId = session?.rolId;
+  const esAdmin = rolId === 1;
+  const puedeVerReportes = rolId === 1 || rolId === 3; // Admin y Consulta
 
   const [administracionAbierta, setAdministracionAbierta] = useState(true);
   const [catalogosAbiertos, setCatalogosAbiertos] = useState(false);
@@ -51,8 +57,9 @@ export function Sidebar() {
 
   const cerrarSesion = async () => {
     setCerrandoSesion(true);
-    try { await logout(); }
-    finally {
+    try {
+      await logout();
+    } finally {
       setSession(null);
       navigate('/login', { replace: true });
     }
@@ -106,18 +113,31 @@ export function Sidebar() {
           <span>Inicio</span>
         </Link>
 
-        {grupo('Administración', administracionAbierta, setAdministracionAbierta, '⚙', enlacesAdministracion)}
+        {/* Administración — solo Admin */}
+        {esAdmin && grupo('Administración', administracionAbierta, setAdministracionAbierta, '⚙', enlacesAdministracion)}
+
+        {/* Catálogos — todos */}
         {grupo('Catálogos', catalogosAbiertos, setCatalogosAbiertos, '▦', enlacesCatalogos)}
+
+        {/* Catálogos Educación — todos */}
         {grupo('Catálogos Educación', educacionAbiertos, setEducacionAbiertos, '🏫', enlacesCatalogosEducacion)}
+
+        {/* Registros — todos */}
         {grupo('Registros', registrosAbiertos, setRegistrosAbiertos, '📝', enlacesRegistros)}
-        {grupo('Reportes', reportesAbiertos, setReportesAbiertos, '📄', enlacesReportes)}
+
+        {/* Reportes — Admin y Consulta */}
+        {puedeVerReportes && grupo('Reportes', reportesAbiertos, setReportesAbiertos, '📄', enlacesReportes)}
       </nav>
 
       <div className={styles.profile}>
         <div className={styles.avatar} aria-hidden="true">{session?.usuarioId ?? 'S'}</div>
         <div className={styles.profileText}>
           <span>Sesión activa</span>
-          <strong>{session?.rolId === 1 ? 'Administrador' : 'Usuario'}</strong>
+          <strong>
+            {rolId === 1 && 'Administrador'}
+            {rolId === 2 && 'Registrador'}
+            {rolId === 3 && 'Consulta'}
+          </strong>
         </div>
         <button
           className={styles.logout}

@@ -10,10 +10,17 @@ import { listarCarreras } from '../../api/endpoints/carreras.js';
 import { listarTiposIngreso } from '../../api/endpoints/tiposIngreso.js';
 import { NotificacionModal } from '../../components/modales/NotificacionModal.jsx';
 import { ConfirmacionModal } from '../../components/modales/ConfirmacionModal.jsx';
+import { useSession } from '../../context/SessionContext.jsx';
 import styles from './MatriculadosPage.module.css';
 
 export function MatriculadosPage() {
   const navigate = useNavigate();
+  const { session } = useSession();
+
+  // 🎯 Permisos según rol (Opción A — por rolId)
+  const rolId = session?.rolId;
+  const puedeCrear = rolId === 1 || rolId === 2;   // Admin o Registrador
+  const puedeAnular = rolId === 1 || rolId === 2;  // Admin o Registrador
 
   const [aniosLectivos, setAniosLectivos] = useState([]);
   const [centros, setCentros] = useState([]);
@@ -25,7 +32,6 @@ export function MatriculadosPage() {
   const [filtroCarrera, setFiltroCarrera] = useState('');
   const [filtroTipoIngreso, setFiltroTipoIngreso] = useState('');
 
-  // Resultados: null = no se ha buscado todavía
   const [datos, setDatos] = useState(null);
   const [buscando, setBuscando] = useState(false);
   const [error, setError] = useState('');
@@ -35,7 +41,6 @@ export function MatriculadosPage() {
   const [notificacion, setNotificacion] = useState(null);
   const [aviso, setAviso] = useState(null);
 
-  // Cargar catálogos para los filtros al montar
   useEffect(() => {
     Promise.all([
       listarAniosLectivos(),
@@ -72,7 +77,7 @@ export function MatriculadosPage() {
     setFiltroCentro('');
     setFiltroCarrera('');
     setFiltroTipoIngreso('');
-    setDatos(null);   // ← oculta la card de resultados
+    setDatos(null);
   };
 
   const pedirAnular = (item) => setConfirmacion({ item });
@@ -121,25 +126,26 @@ export function MatriculadosPage() {
 
   return (
     <main className={styles.page}>
-      {/* Header */}
       <header className={styles.header}>
         <div>
           <p className={styles.headerEyebrow}>Registros</p>
           <h1 className={styles.headerTitle}>Registro Matriculados</h1>
           <span className={styles.headerSubtitle}>Administración de Registro de Matriculados</span>
         </div>
-        <button
-          type="button"
-          onClick={() => navigate('/registros/matriculados/nuevo')}
-          className={styles.btnAgregar}
-        >
-          Agregar Registro
-        </button>
+        {/* 🎯 Solo Admin y Registrador pueden crear */}
+        {puedeCrear && (
+          <button
+            type="button"
+            onClick={() => navigate('/registros/matriculados/nuevo')}
+            className={styles.btnAgregar}
+          >
+            Agregar Registro
+          </button>
+        )}
       </header>
 
       {error && <p className={styles.error}>{error}</p>}
 
-      {/* Card de filtros */}
       <section className={styles.cardFiltros}>
         <h2 className={styles.cardFiltrosTitulo}>FILTROS PARA BUSCAR REGISTROS</h2>
         <hr className={styles.divisor} />
@@ -221,7 +227,6 @@ export function MatriculadosPage() {
         </div>
       </section>
 
-      {/* Card de resultados (solo aparece después de buscar) */}
       {datos !== null && (
         <section className={styles.cardResultados}>
           <div className={styles.cardResultadosHeader}>
@@ -265,14 +270,17 @@ export function MatriculadosPage() {
                       <td>{x.Total}</td>
                       <td>
                         <div className={styles.acciones}>
-                          <button
-                            type="button"
-                            onClick={() => pedirAnular(x)}
-                            title="Anular registro"
-                            className={styles.btnAnular}
-                          >
-                            🚫
-                          </button>
+                          {/* 🎯 Anular: solo Admin y Registrador */}
+                          {puedeAnular && (
+                            <button
+                              type="button"
+                              onClick={() => pedirAnular(x)}
+                              title="Anular registro"
+                              className={styles.btnAnular}
+                            >
+                              🚫
+                            </button>
+                          )}
                           <button
                             type="button"
                             onClick={() =>
